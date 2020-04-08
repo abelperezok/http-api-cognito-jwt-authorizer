@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Sample SAM Template using HTTP API and Cognito Authorizer
+
+Resources:
+
+  # Dummy Lambda function 
+  HttpApiTestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: |
+        exports.handler = function(event, context, callback) {
+          const response = {
+            test: 'Hello HttpApi',
+            claims: event.requestContext.authorizer && event.requestContext.authorizer.jwt.claims
+          };
+          callback(null, response);
+        };
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Timeout: 30
+      MemorySize: 256
+      Events:
+        GetOpen:
+          Type: HttpApi
+          Properties:
+            Path: /test
+            Method: GET
+            ApiId: !Ref HttpApi
+            Auth:
+              Authorizer: NONE
+        GetSecure:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Method: GET
+            Path: /secure
+            Auth:
+              Authorizer: OpenIdAuthorizer
+
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration: 
+        AllowOrigins:
+          - "*"
+      Auth:
+        Authorizers:
+          OpenIdAuthorizer:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              audience:
+                - !Ref UserPoolClient
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+        DefaultAuthorizer: OpenIdAuthorizer
+
+
+# User pool - simple configuration 
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties: 
+      AdminCreateUserConfig: 
+        AllowAdminCreateUserOnly: false
+      AutoVerifiedAttributes: 
+        - email
+      MfaConfiguration: "OFF"
+      Schema: 
+        - AttributeDataType: String
+          Mutable: true
+          Name: name
+          Required: true
+        - AttributeDataType: String
+          Mutable: true
+          Name: email
+          Required: true
+      UsernameAttributes: 
+        - email
+
+  # User Pool client
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties: 
+      ClientName: AspNetAppLambdaClient
+      ExplicitAuthFlows: 
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      RefreshTokenValidity: 30
+      SupportedIdentityProviders: 
+        - COGNITO
+      UserPoolId: !Ref UserPool
+
+
+Outputs:
+  HttpApiUrl:
+    Description: URL of your API endpoint
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/'
+  HttpApiId:
+    Description: Api id of HttpApi
+    Value: !Ref HttpApi
+  UserPoolId:
+    Description: UserPool ID
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: UserPoolClient ID
+    Value: !Ref UserPoolClient
