@@ -1,9 +1,9 @@
 #! /bin/bash
 
 REGION=us-east-1
-PROFILE=dynamocode
-S3_DEPLOYMENT_BUCKET=dynamocode-deployments
-STACK_NAME=sam-test-http-api-auth
+PROFILE=profile
+S3_DEPLOYMENT_BUCKET=buket-for-deployments
+STACK_NAME=http-api-cognito-jwt-authorizer
 
 sam package --s3-bucket $S3_DEPLOYMENT_BUCKET --s3-prefix $STACK_NAME \
 	--output-template-file packaged.yaml \
