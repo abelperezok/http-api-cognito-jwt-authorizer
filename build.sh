@@ -2,7 +2,7 @@
 
 REGION=us-east-1
 PROFILE=profile
-S3_DEPLOYMENT_BUCKET=buket-for-deployments
+S3_DEPLOYMENT_BUCKET=bucket-for-deployments
 STACK_NAME=http-api-cognito-jwt-authorizer
 
 sam package --s3-bucket $S3_DEPLOYMENT_BUCKET --s3-prefix $STACK_NAME \
