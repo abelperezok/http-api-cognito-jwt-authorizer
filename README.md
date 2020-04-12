@@ -46,7 +46,7 @@ Update .env file with the information from the outputs after deploying the backe
 
 ## Create a Cognito user
 
-YOu can use the AWS Console to create Cognito users, but if you prefer the command line, here is how. 
+You can use the AWS Console to create Cognito users, but if you prefer the command line, here is how. 
 
 Sign up providing the client id, username and password.
 
